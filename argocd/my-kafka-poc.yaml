@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-kafka-poc
+  namespace: argocd
+spec:
+  destination:
+    namespace: default
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    repoURL: 'https://github.com/your-org/my-kafka-poc.git'
+    targetRevision: main
+    path: deployment/k8s
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

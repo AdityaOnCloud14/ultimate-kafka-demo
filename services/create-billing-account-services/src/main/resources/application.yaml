@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: create-billing-account-service
+  datasource:
+    url: jdbc:postgresql://<rds-endpoint>:5432/create_billing_account_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+  consumer:
+    group-id: create-billing-account-group
+    auto-offset-reset: earliest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true

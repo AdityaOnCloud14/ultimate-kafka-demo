@@ -1,0 +1,52 @@
+name: CI Build & Update Manifests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}   # e.g., 123456789012.dkr.ecr.us-west-2.amazonaws.com
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Docker image (create-account-service)
+        working-directory: services/create-account-service
+        run: |
+          IMAGE_URI=${{ env.ECR_REGISTRY }}/create-account-service:${{ env.IMAGE_TAG }}
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+      - name: Update Kubernetes Manifest with new image tag
+        run: |
+          # Update the image field in the manifest file using yq
+          yq eval '.spec.template.spec.containers[0].image = "'${{ env.ECR_REGISTRY }}/create-account-service:${{ env.IMAGE_TAG }}"' ' -i deployment/k8s/create-account-deployment.yaml
+        shell: bash
+
+      - name: Commit and Push Updated Manifests
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add deployment/k8s/create-account-deployment.yaml
+          git commit -m "Update create-account-service image to ${{ env.IMAGE_TAG }}"
+          git push origin main

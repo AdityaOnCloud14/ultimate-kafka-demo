@@ -1,0 +1,26 @@
+  spring:
+    application:
+      name: customer-plan-activation-services
+    datasource:
+      url: jdbc:postgresql://<rds-endpoint>:5432/customer_plan_activation_db
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+    jpa:
+      hibernate:
+        ddl-auto: update
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: customer-plan-activation-group
+      auto-offset-reset: earliest
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,prometheus
+    metrics:
+      export:
+        prometheus:
+          enabled: true

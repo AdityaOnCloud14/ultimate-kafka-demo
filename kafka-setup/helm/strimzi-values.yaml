@@ -1,0 +1,6 @@
+# kafka-setup/helm/strimzi-values.yaml
+namespace: kafka
+fullnameOverride: strimzi-kafka-operator
+operator:
+  logLevel: INFO
+  watchAnyNamespace: true
